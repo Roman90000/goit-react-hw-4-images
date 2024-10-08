@@ -1,104 +1,72 @@
-import { Component } from 'react';
+// import { Component } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { responseAxios } from 'api';
 import toast, { Toaster } from 'react-hot-toast';
 import { Button } from './Button/Button';
 import { CustomModal } from './Modal/Modal';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    input: '',
-    images: [],
-    page: 1,
-    modalIsOpen: false,
-    webformatURL: '',
-    tags: '',
-  };
+export const App = () => {
+  const [input, setInput] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [webformatURL, setWebformatURL] = useState('');
+  const [tags, setTags] = useState('');
 
-  // componentDidMount() {
-  //   const savedLocal = localStorage.getItem('state');
-  //   const localState = JSON.parse(savedLocal);
-  //   const { input, images, page } = localState;
-  //   if (savedLocal !== null) {
-  //     this.setState({
-  //       input: input,
-  //       images: images,
-  //       page: page,
-  //     });
-  //   }
-  // }
-
-  componentDidUpdate(prevProps, prevState) {
-    const { input, page } = this.state;
-
-    // if (prevState.state !== this.state) {
-    //   localStorage.setItem('state', JSON.stringify(this.state));
-    // }
-
-    if (prevState.input !== input || prevState.page !== page) {
-      responseAxios(input, page)
-        .then(data => {
-          if (!data.length) {
-            toast.error('No photos found.');
-          }
-          this.setState(prevState => ({
-            images: [...prevState.images, ...data],
-          }));
-        })
-        .catch(error => {
-          toast.error('No photos found.');
-        });
+  useEffect(() => {
+    if (!input) {
+      return;
     }
-  }
+    responseAxios(input, page)
+      .then(data => {
+        if (!data.length) {
+          toast.error('No photos found.');
+        }
+        setImages(prevImages => [...prevImages, ...data]);
+      })
+      .catch(error => {
+        toast.error('No photos found.');
+      });
+  }, [input, page]);
 
-  searchInput = e => {
+  const searchInput = e => {
     e.preventDefault();
-
-    this.setState({
-      input: e.target.search.value.toLowerCase().trim(),
-      images: [],
-      page: 1,
-    });
+    setInput(e.target.search.value.toLowerCase().trim());
+    setImages([]);
+    setPage(1);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const loadMore = () => {
+    setPage(page + 1);
   };
 
-  openModal = ({ webformatURL, tags }) => {
-    this.setState(prevState => ({
-      modalIsOpen: !prevState.modalIsOpen,
-      webformatURL,
-      tags,
-    }));
+  const openModal = ({ webformatURL, tags }) => {
+    setModalIsOpen(prevModal => !prevModal);
+    setWebformatURL(webformatURL);
+    setTags(tags);
   };
 
-  closeModal = () => {
-    this.setState({
-      modalIsOpen: false,
-      webformatURL: '',
-    });
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setWebformatURL('');
   };
-  render() {
-    const { images, webformatURL, tags, modalIsOpen } = this.state;
-    return (
-      <div>
-        <Searchbar search={this.searchInput} />
-        {this.state.images.length > 0 && (
-          <ImageGallery openModal={this.openModal} images={images} />
-        )}
-        {this.state.images.length > 0 && <Button onLoadMore={this.loadMore} />}
-        <CustomModal
-          closeModal={this.closeModal}
-          modalIsOpen={modalIsOpen}
-          image={webformatURL}
-          tags={tags}
-        />
-        <Toaster position="top-right" />
-      </div>
-    );
-  }
-}
+
+  return (
+    <div>
+      <Searchbar search={searchInput} />
+      {images.length > 0 && (
+        <ImageGallery openModal={openModal} images={images} />
+      )}
+      {images.length > 0 && <Button onLoadMore={loadMore} />}
+      <CustomModal
+        closeModal={closeModal}
+        modalIsOpen={modalIsOpen}
+        image={webformatURL}
+        tags={tags}
+      />
+      <Toaster position="top-right" />
+    </div>
+  );
+};

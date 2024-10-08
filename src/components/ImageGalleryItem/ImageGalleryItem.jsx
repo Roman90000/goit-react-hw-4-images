@@ -1,14 +1,16 @@
+import { Item, Img } from './ImageGalleryItem.styled';
+
 export const ImageGalleryItem = ({
-  image: { webformatURL, tags },
+  image: { webformatURL, tags, id },
   openModal,
 }) => {
   return (
-    <li>
-      <img
+    <Item>
+      <Img
         src={webformatURL}
         alt={tags}
         onClick={() => openModal({ webformatURL, tags })}
       />
-    </li>
+    </Item>
   );
 };
