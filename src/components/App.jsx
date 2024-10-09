@@ -39,7 +39,7 @@ export const App = () => {
   };
 
   const loadMore = () => {
-    setPage(page + 1);
+    setPage(prevPage => prevPage + 1);
   };
 
   const openModal = ({ webformatURL, tags }) => {
